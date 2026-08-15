@@ -1,0 +1,831 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reiseplan Thailand 2027 - Daniela & Heiko</title>
+    
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🌴</text></svg>">
+    
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><rect width=%22100%22 height=%22100%22 fill=%22%23007777%22/><text x=%2250%22 y=%2254%22 font-size=%2265%22 dominant-baseline=%22middle%22 text-anchor=%22middle%22>🌴</text></svg>">
+    <meta name="apple-mobile-web-app-title" content="Thailand 2027">
+    
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <style>
+        :root {
+            --primary: #007777;
+            --secondary: #e67e22;
+            --bg-light: #f4f7f6;
+            --text-dark: #2c3e50;
+            --card-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-dark);
+            background-color: var(--bg-light);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('Santiburi_Koh Samui_1.jpg') center/cover;
+            color: white;
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* --- Dezenter Toggle Switch Styling --- */
+        .toggle-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 40px;
+            font-size: 0.95rem;
+            color: #7f8c8d;
+        }
+
+        .toggle-container span {
+            transition: color 0.3s ease;
+        }
+
+        .toggle-container span.active-color {
+            color: var(--text-dark);
+            font-weight: 600;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 36px;
+            height: 18px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #dcdde1;
+            transition: .4s;
+            border-radius: 18px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 12px;
+            width: 12px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--primary);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(18px);
+        }
+
+        /* --- Logik für den Pro-Modus --- */
+        .pro-element {
+            display: none !important;
+        }
+
+        body.pro-mode-active .pro-element.badge {
+            display: inline-flex !important;
+        }
+
+        body.pro-mode-active .pro-element.pro-details {
+            display: block !important;
+        }
+        /* ------------------------------------------- */
+
+        .pro-details {
+            background-color: #eef7f7;
+            border-left: 4px solid var(--primary);
+            padding: 15px;
+            border-radius: 6px;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            font-size: 0.95rem;
+        }
+
+        .pro-details ul {
+            margin: 5px 0 0 0;
+            padding-left: 20px;
+            list-style-type: none;
+        }
+        
+        .pro-details li {
+            margin-bottom: 6px;
+        }
+
+        .section-title {
+            text-align: center;
+            color: var(--primary);
+            margin-top: 40px;
+            margin-bottom: 20px;
+            font-size: 1.8rem;
+        }
+
+        #map {
+            height: 450px;
+            width: 100%;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 40px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 12px;
+            padding: 25px 20px;
+            text-align: center;
+            box-shadow: var(--card-shadow);
+            border-top: 5px solid var(--primary);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-card i {
+            font-size: 2.5rem;
+            color: var(--secondary);
+            margin-bottom: 12px;
+        }
+
+        .stat-number {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--primary);
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #666;
+            font-weight: 600;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: var(--card-shadow);
+            margin-bottom: 25px;
+            overflow: hidden;
+        }
+
+        .flight-card {
+            border-left: 6px solid var(--secondary);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .flight-info {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .airline-icon {
+            font-size: 2rem;
+            color: var(--secondary);
+        }
+
+        .hotel-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hotel-header h3 {
+            margin: 0;
+        }
+
+        .hotel-body {
+            padding: 20px;
+        }
+
+        .hotel-gallery {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .hotel-gallery img {
+            width: 100%;
+            height: 276px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #ddd;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: var(--secondary);
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 15px;
+            transition: background 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #d35400;
+        }
+
+        .transfer-card {
+            background: #eef7f7;
+            border-left: 4px solid var(--primary);
+            padding: 12px 20px;
+            margin-bottom: 15px;
+            border-radius: 6px;
+            font-size: 0.95rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .badge-booked {
+            background-color: #27ae60;
+            color: white;
+        }
+
+        .badge-open {
+            background-color: #e67e22;
+            color: white;
+        }
+
+        .badge-transfer {
+            background-color: #3498db;
+            color: white;
+        }
+
+        footer {
+            text-align: center;
+            padding: 25px;
+            background-color: var(--primary);
+            color: white;
+            margin-top: 50px;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>🇹🇭 Reiseplan Thailand 2027</h1>
+        <p>Daniela & Heiko Dörner | 24. Januar – 04. März 2027 (6 Wochen)</p>
+    </header>
+
+    <div class="container">
+
+        <div class="toggle-container">
+            <span id="text-basis" class="active-color">Basis-Ansicht</span>
+            <label class="switch">
+                <input type="checkbox" id="proModeToggle" onchange="toggleProMode()">
+                <span class="slider"></span>
+            </label>
+            <span id="text-pro">Pro-Ansicht</span>
+        </div>
+
+        <h2 class="section-title"><i class="fa-solid fa-map-location-dot"></i> Geografische Reiseroute</h2>
+        <div id="map"></div>
+
+        <h2 class="section-title"><i class="fa-solid fa-chart-pie"></i> Die Reise in Zahlen</h2>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <i class="fa-solid fa-calendar-days"></i>
+                <div class="stat-number">40</div>
+                <div class="stat-label">Reisetage (6 Wochen)</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-hotel"></i>
+                <div class="stat-number">8</div>
+                <div class="stat-label">Traumhafte Stationen</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-plane"></i>
+                <div class="stat-number">5</div>
+                <div class="stat-label">Flüge insgesamt</div>
+            </div>
+            <div class="stat-card">
+                <i class="fa-solid fa-ferry"></i>
+                <div class="stat-number">3</div>
+                <div class="stat-label">Fährüberfahrten</div>
+            </div>
+        </div>
+
+        <h2 class="section-title"><i class="fa-solid fa-route"></i> Chronologischer Reiseverlauf</h2>
+
+        <div class="card flight-card">
+            <div class="flight-info">
+                <i class="fa-solid fa-plane-departure airline-icon"></i>
+                <div>
+                    <strong>Thai Airways (Flug TG 923)</strong><br>
+                    <span>Frankfurt (FRA) ➔ Bangkok (BKK)</span>
+                </div>
+            </div>
+            <div>
+                <span class="badge badge-open pro-element"><i class="fa-solid fa-clock"></i> Noch offen</span><br>
+                <strong>Datum:</strong> So, 24.01. – Mo, 25.01.2027<br>
+                <span>Flugzeit: 13:45 Uhr – 06:25 Uhr (+1 Tag) | Direktflug (10 Std. 40 Min.)</span>
+                
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kostenschätzung:</strong> ca. 750,00 €</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Thai Airways</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Noch offen</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> Noch offen</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>1. Bangkok I: Riva Surya Bangkok</h3>
+                    <small>25.01. – 28.01.2027 (3 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 26.07.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Stilvolles Boutique-Hotel direkt am idyllischen Ufer des Chao Phraya Flusses. Die traumhafte Pool-Terrasse am Wasser lädt nach dem Flug zum perfekten Entschleunigen ein. Dank der Lage direkt am Phra Athit Pier entdeckt ihr die historischen Tempel und Sehenswürdigkeiten staufrei und entspannt per Express-Boot.</p>
+                
+                <a href="https://www.rivasuryabangkok.com/en/" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 429,51 € (Zahlung per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Agoda.com</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 321-10932668</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> 09.01.2027</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 10.01.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Riva_Surya_Bangkok_1.jpg" alt="Riva Surya Bangkok 1">
+                    <img src="Riva_Surya_Bangkok_2.jpg" alt="Riva Surya Bangkok 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="card flight-card">
+            <div class="flight-info">
+                <i class="fa-solid fa-plane airline-icon"></i>
+                <div>
+                    <strong>Bangkok Airways (Flug PG217)</strong><br>
+                    <span>Bangkok (BKK) ➔ Chiang Mai (CNX)</span>
+                </div>
+            </div>
+            <div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 25.07.26</span><br>
+                <strong>Datum:</strong> 28.01.2027<br>
+                <span>Flugzeit: 12:25 Uhr – 13:45 Uhr</span>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 149,90 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Booking.com</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> E9SKTG</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (27.07.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> Keine Angabe</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>2. Chiang Mai: Phor Liang Meun Terracotta Arts Hotel</h3>
+                    <small>28.01. – 03.02.2027 (6 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 21.07.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Einzigartiges 4-Sterne-Boutique-Juwel im Herzen der historischen Altstadt. Ein kunstvoll gestaltetes Refugium mit Terrakotta-Reliefs, ruhigem Salzwasser-Pool und stilvollen Zimmern für vollendete Entspannung.</p>
+                
+                <a href="https://www.terracottahotelcm.com/" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 890,00 € (Zahlung per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Booking.com</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 5697379551</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> 11.01.2027</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 13.01.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Phor_Liang_Meun_Terracotta_Arts_Hotel_1.jpg" alt="Phor Liang Meun Terracotta Arts Hotel 1">
+                    <img src="Phor_Liang_Meun_Terracotta_Arts_Hotel_2.jpg" alt="Phor Liang Meun Terracotta Arts Hotel 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="card flight-card">
+            <div class="flight-info">
+                <i class="fa-solid fa-plane airline-icon"></i>
+                <div>
+                    <strong>Thai AirAsia (Flug FD542)</strong><br>
+                    <span>Chiang Mai (CNX) ➔ Surat Thani (URT)</span>
+                </div>
+            </div>
+            <div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 25.07.26</span><br>
+                <strong>Datum:</strong> 03.02.2027<br>
+                <span>Flugzeit: 08:20 Uhr – 10:05 Uhr</span>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 323,87 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Booking.com</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> RE7NJJ</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (27.07.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> Keine Angabe</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>3. Khao Sok: Our Jungle House</h3>
+                    <small>03.02. – 07.02.2027 (4 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 10.07.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Magisches & authentisches Baumhaus-Erlebnis fest an Land über dem Fluss. Genießt unvergessliche Nächte inmitten ungezähmter Dschungelnatur direkt am Flussufer. Inklusive Experience Package (Fluss-Kanu, Kochkurs und Nachtsafari).</p>
+                
+                <a href="https://www.khaosokaccommodation.com" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 805,00 € (Bezahlt per Flywire)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Direktbuchung Our Jungle House</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 89423127</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> 04.02.2027</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 05.01.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Our_Jungle_House_1.jpg" alt="Our Jungle House 1">
+                    <img src="Our_Jungle_House_2.jpg" alt="Our Jungle House 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="transfer-card">
+            <div>
+                <i class="fa-solid fa-taxi"></i> <strong>07.02. Transfer:</strong> Fahrt von Khao Sok quer über das Festland nach Khanom im klimatisierten Privatwagen (ca. 2,5 Stunden Fahrzeit).
+            </div>
+            <span class="badge badge-transfer"><i class="fa-solid fa-car"></i> Privat-Transfer</span>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>4. Khanom: Baan Proud Proud</h3>
+                    <small>07.02. – 13.02.2027 (6 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 12.07.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Ein verstecktes, einfaches Boutique-Juwel mit tiefenentspanntem Vibe, kostenlosen Fahrrädern und maximaler Privatsphäre für eure pure Regeneration. Nur 200m vom endlosen Sandstrand entfernt.</p>
+                
+                <a href="https://www.khanombeachresort.com" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 944,83 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Booking.com</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 5605676665</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> 21.01.2027</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 23.01.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Baan_Proud_Proud_1.jpg" alt="Baan Proud Proud 1">
+                    <img src="Baan_Proud_Proud_2.jpg" alt="Baan Proud Proud 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="transfer-card">
+            <div>
+                <i class="fa-solid fa-ferry"></i> <strong>13.02. Transfer & Fähre:</strong> Transfer zum Donsak Pier und Überfahrt mit der großen Seatran Autofähre nach Koh Samui (Na Thon Pier).
+            </div>
+            <span class="badge badge-transfer"><i class="fa-solid fa-ferry"></i> Autofähre</span>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>5. Koh Samui I: Promtsuk Buri (Silver Beach)</h3>
+                    <small>13.02. – 19.02.2027 (6 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 18.06.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Wunderschöne, palmengesäumte Bungalows direkt an einer wellengeschützten Traumbucht. Malerische Bungalows eingebettet in eine der schönsten und windstillsten Buchten der gesamten Insel.</p>
+                
+                <a href="https://www.promtsukburi.com" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 447,96 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Expedia.de</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> EXP-2488095066</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (18.06.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 30.01.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Promtsuk_Buri_1.jpg" alt="Promtsuk Buri 1">
+                    <img src="Promtsuk_Buri_2.jpg" alt="Promtsuk Buri 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="transfer-card">
+            <div>
+                <i class="fa-solid fa-ship"></i> <strong>19.02. Katamaran-Fähre:</strong> Kurze 30-minütige Katamaran-Fahrt von Koh Samui nach Koh Phangan.
+            </div>
+            <span class="badge badge-transfer"><i class="fa-solid fa-ship"></i> Katamaran</span>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>6. Koh Phangan: Buri Rasa Village Phangan</h3>
+                    <small>19.02. – 25.02.2027 (6 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 15.08.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Traumhaftes Boutique-Resort direkt am idyllischen und feinsandigen Thong Nai Pan Noi Beach im Nordosten der Insel. Ein luxuriöses Refugium mit fantastischem Service und wunderschönen Zimmern für pure Entspannung abseits des Trubels. Falls ihr am 21.02. zur Full Moon Party möchtet, bietet das Hotel einen direkten Transferservice an.</p>
+                
+                <a href="https://www.burirasa.com/phangan/" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 1.347,52 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Expedia.de</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 73522761861217</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (15.08.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 20.01.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Buri_Rasa_1.jpg" alt="Buri Rasa Village Phangan 1">
+                    <img src="Buri_Rasa_2.jpg" alt="Buri Rasa Village Phangan 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="transfer-card">
+            <div>
+                <i class="fa-solid fa-ship"></i> <strong>25.02. Katamaran-Überfahrt:</strong> Rückfahrt per Katamaran nach Koh Samui und Privat-Transfer an die ruhige Nordküste.
+            </div>
+            <span class="badge badge-transfer"><i class="fa-solid fa-ship"></i> Katamaran & Taxi</span>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>7. Koh Samui II: Santiburi Koh Samui</h3>
+                    <small>25.02. – 28.02.2027 (3 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 27.07.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Legendäres 5-Sterne-Luxusresort eingebettet in einen weitläufigen, tropischen Palmengarten direkt an der ruhigen Mae Nam Bucht. Ein exklusives Refugium mit gigantischer Poollandschaft und erstklassigem Service.</p>
+                
+                <a href="https://santiburisamui.com/de/" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 1.170,33 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Expedia.de</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 95417SG015543</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (28.07.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 22.02.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Santiburi_Koh Samui_1.jpg" alt="Santiburi Koh Samui 1">
+                    <img src="Santiburi_Koh_Samui_2.jpg" alt="Santiburi Koh Samui 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="card flight-card">
+            <div class="flight-info">
+                <i class="fa-solid fa-plane airline-icon"></i>
+                <div>
+                    <strong>Bangkok Airways (Flug PG136)</strong><br>
+                    <span>Koh Samui (USM) ➔ Bangkok (BKK)</span>
+                </div>
+            </div>
+            <div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 27.07.26</span><br>
+                <strong>Datum:</strong> 28.02.2027<br>
+                <span>Flugzeit: 12:40 Uhr – 13:55 Uhr</span>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 337,48 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Booking.com</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> FDDO7Y</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (28.07.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> Keine Angabe</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="hotel-header">
+                <div>
+                    <h3>8. Bangkok II: AriyasomVilla</h3>
+                    <small>28.02. – 03.03.2027 (3 Nächte)</small>
+                </div>
+                <span class="badge badge-booked pro-element"><i class="fa-solid fa-circle-check"></i> Gebucht am 26.07.26</span>
+            </div>
+            <div class="hotel-body">
+                <p>Atemberaubende Wohlfühloase im historischen Kolonialstil der 1940er-Jahre inmitten üppiger Gärten. Ein historischer Kolonialtraum, der eine friedliche Oase der Stille im Herzen Bangkoks bildet.</p>
+                
+                <a href="https://www.ariyasom.com" target="_blank" class="btn"><i class="fa-solid fa-globe"></i> Hotel-Webseite besuchen</a>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kosten:</strong> 406,33 € (Bezahlt per Mastercard)</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Expedia.de</li>
+                        <li><strong><i class="fa-solid fa-hashtag"></i> Buchungsreferenz:</strong> 1BE3KU</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Bereits bezahlt (28.07.2026)</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> 21.02.2027</li>
+                    </ul>
+                </div>
+
+                <div class="hotel-gallery">
+                    <img src="Ariyasom_Villa_1.jpg" alt="Ariyasom Villa 1">
+                    <img src="Ariyasom_Villa_2.jpg" alt="Ariyasom Villa 2">
+                </div>
+            </div>
+        </div>
+
+        <div class="card flight-card">
+            <div class="flight-info">
+                <i class="fa-solid fa-plane-arrival airline-icon"></i>
+                <div>
+                    <strong>Thai Airways (Flug TG 922)</strong><br>
+                    <span>Bangkok (BKK) ➔ Frankfurt (FRA)</span>
+                </div>
+            </div>
+            <div>
+                <span class="badge badge-open pro-element"><i class="fa-solid fa-clock"></i> Noch offen</span><br>
+                <strong>Datum:</strong> Mi, 03.03.2027<br>
+                <span>Flugzeit: 12:40 Uhr – 19:05 Uhr | Direktflug (12 Std. 25 Min.)</span>
+
+                <div class="pro-element pro-details">
+                    <ul>
+                        <li><strong><i class="fa-solid fa-money-bill-wave"></i> Kostenschätzung:</strong> ca. 600,00 €</li>
+                        <li><strong><i class="fa-solid fa-building"></i> Anbieter:</strong> Thai Airways</li>
+                        <li><strong><i class="fa-solid fa-calendar-check"></i> Restbetrag fällig:</strong> Noch offen</li>
+                        <li><strong><i class="fa-solid fa-calendar-xmark"></i> Stornierbar bis:</strong> Noch offen</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer>
+        <p>Gute Reise & unvergessliche Momente in Thailand! ✈️🌴</p>
+    </footer>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Funktion zum Ein- und Ausblenden des Pro-Modus
+        function toggleProMode() {
+            var isPro = document.getElementById('proModeToggle').checked;
+            var bodyElement = document.body;
+            var textBasis = document.getElementById('text-basis');
+            var textPro = document.getElementById('text-pro');
+
+            if(isPro) {
+                bodyElement.classList.add('pro-mode-active');
+                textPro.classList.add('active-color');
+                textBasis.classList.remove('active-color');
+            } else {
+                bodyElement.classList.remove('pro-mode-active');
+                textBasis.classList.add('active-color');
+                textPro.classList.remove('active-color');
+            }
+        }
+
+        // Karte initialisieren
+        var map = L.map('map').setView([13.7563, 100.5018], 6);
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; OpenStreetMap contributors'
+        }).addTo(map);
+
+        var routePoints = [
+            { name: "1. Bangkok (Riva Surya)", lat: 13.7563, lng: 100.5018 },
+            { name: "2. Chiang Mai (Phor Liang Meun)", lat: 18.7883, lng: 98.9853 },
+            { name: "3. Khao Sok (Our Jungle House)", lat: 8.9084, lng: 98.5287 },
+            { name: "4. Khanom (Baan Proud Proud)", lat: 9.2064, lng: 99.8576 },
+            { name: "5. Koh Samui I (Promtsuk Buri)", lat: 9.5120, lng: 100.0136 },
+            { name: "6. Koh Phangan (Buri Rasa)", lat: 9.7758, lng: 100.0545 },
+            { name: "7. Koh Samui II (Santiburi)", lat: 9.5700, lng: 99.9900 },
+            { name: "8. Bangkok II (AriyasomVilla)", lat: 13.7480, lng: 100.5520 }
+        ];
+
+        var latlngs = [];
+
+        routePoints.forEach(function(point) {
+            L.marker([point.lat, point.lng]).addTo(map)
+                .bindPopup("<b>" + point.name + "</b>");
+            latlngs.push([point.lat, point.lng]);
+        });
+
+        var polyline = L.polyline(latlngs, {color: '#e67e22', weight: 4, opacity: 0.8, dashArray: '8, 8'}).addTo(map);
+        map.fitBounds(polyline.getBounds());
+    </script>
+</body>
+</html>
